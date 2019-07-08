@@ -58,7 +58,7 @@ namespace Npgsql
             [FieldOffset(0)]
             internal short Idle;
             [FieldOffset(2)]
-            internal short Busy;
+            internal int Busy;
             [FieldOffset(0)]
             internal long All;
 
@@ -208,13 +208,7 @@ namespace Npgsql
                 if (state.Total < _max)
                 {
                     // We're under the pool's max capacity, try to "allocate" a slot for a new physical connection.
-                    newState.Busy++;
-                    CheckInvariants(newState);
-                    if (Interlocked.CompareExchange(ref State.All, newState.All, state.All) != state.All)
-                    {
-                        // Our attempt to increment the busy count failed, Loop again and retry.
-                        continue;
-                    }
+                    Interlocked.Increment(ref state.Busy);
 
                     try
                     {
@@ -226,22 +220,7 @@ namespace Npgsql
                     {
                         // Physical open failed, decrement busy back down
                         conn.Connector = null;
-
-                        var sw = new SpinWait();
-                        while (true)
-                        {
-                            state = State.Copy();
-                            newState = state;
-                            newState.Busy--;
-                            if (Interlocked.CompareExchange(ref State.All, newState.All, state.All) != state.All)
-                            {
-                                // Our attempt to increment the busy count failed, Loop again and retry.
-                                sw.SpinOnce();
-                                continue;
-                            }
-
-                            break;
-                        }
+                        Interlocked.Decrement(ref state.Busy);
 
                         // There may be waiters because we raised the busy count (and failed). Release one
                         // waiter if there is one.
