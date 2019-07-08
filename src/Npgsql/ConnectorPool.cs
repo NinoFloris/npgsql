@@ -362,17 +362,8 @@ namespace Npgsql
                     finally
                     {
                         // The allocation attempt succeeded or timed out, decrement the waiting count
-                        var sw = new SpinWait();
-                        while (true)
-                        {
-                            state = State.Copy();
-                            newState = state;
-                            newState.Waiting--;
-                            CheckInvariants(newState);
-                            if (Interlocked.CompareExchange(ref State.All, newState.All, state.All) == state.All)
-                                break;
-                            sw.SpinOnce();
-                        }
+                        // We can use Decrement here as we don't have any dependence on idle or busy.
+                        Interlocked.Decrement(ref state.Waiting);
                     }
 
                     // Do this outside the try finally so we execute our state.Waiting decrement inline.
