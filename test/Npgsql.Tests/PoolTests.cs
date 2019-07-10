@@ -307,7 +307,7 @@ namespace Npgsql.Tests
         [Test]
         public void ClearWithNoPool()
         {
-            var connString = new NpgsqlConnectionStringBuilder(ConnectionString) 
+            var connString = new NpgsqlConnectionStringBuilder(ConnectionString)
             {
                 ApplicationName = nameof(ClearWithNoPool)
             }.ToString();
@@ -318,7 +318,7 @@ namespace Npgsql.Tests
         [Test, Description("https://github.com/npgsql/npgsql/commit/45e33ecef21f75f51a625c7b919a50da3ed8e920#r28239653")]
         public void PhysicalOpenFailure()
         {
-            var connString = new NpgsqlConnectionStringBuilder(ConnectionString) 
+            var connString = new NpgsqlConnectionStringBuilder(ConnectionString)
             {
                 ApplicationName = nameof(PhysicalOpenFailure),
                 Port = 44444,
@@ -371,6 +371,7 @@ namespace Npgsql.Tests
 
         volatile int StopFlag;
 
+        // TODO pull waiting from queue.count?
         void AssertPoolState([EnsuresNotNull] ConnectorPool? pool, int idle, int busy, int waiting=0)
         {
             if (pool == null)
