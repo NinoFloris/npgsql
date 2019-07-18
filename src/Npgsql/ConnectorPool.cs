@@ -129,7 +129,7 @@ namespace Npgsql
             while (Volatile.Read(ref State.Idle) > 0)
             {
                 var open = Volatile.Read(ref State.Open);
-                for (var i = 0; connector == null && i < open && i < idle.Length; i++)
+                for (var i = 0; connector == null && i <= open && i < idle.Length; i++)
                 {
                     // First check without an Interlocked operation, it's faster
                     if (Volatile.Read(ref idle[i]) == null)
