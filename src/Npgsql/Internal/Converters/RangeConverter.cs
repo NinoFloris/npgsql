@@ -92,28 +92,30 @@ sealed class RangeConverter<T> : PgStreamingConverter<NpgsqlRange<T>>
 
             if (!value.LowerBoundInfinite)
             {
-                Size size = sizeof(int); // Length
-
-                if (!_subtypeConverter.IsDbNull(value.LowerBound))
-                    size = size.Combine(_subtypeConverter.GetSize(context, value.LowerBound, ref rangeWriteState.LowerBoundWriteState));
-                rangeWriteState.LowerBoundSize = size.Value - sizeof(int);
-                totalSize = totalSize.Combine(size);
+                CalculateBoundSize(
+                    value.LowerBound, ref totalSize, out rangeWriteState.LowerBoundSize, ref rangeWriteState.LowerBoundWriteState);
             }
 
             if (!value.UpperBoundInfinite)
             {
-                var size = Size.Create(4); // Length
-
-                if (!_subtypeConverter.IsDbNull(value.UpperBound))
-                    size = size.Combine(_subtypeConverter.GetSize(context, value.UpperBound, ref rangeWriteState.UpperBoundWriteState));
-                rangeWriteState.UpperBoundSize = size.Value - sizeof(int);
-                totalSize = totalSize.Combine(size);
+                CalculateBoundSize(
+                    value.UpperBound, ref totalSize, out rangeWriteState.UpperBoundSize, ref rangeWriteState.UpperBoundWriteState);
             }
 
             writeState = rangeWriteState;
         }
 
         return totalSize;
+
+        void CalculateBoundSize(T? boundValue, ref Size totalSize, out int boundSize, ref object? boundWriteState)
+        {
+            Size size = sizeof(int); // Length
+
+            if (!_subtypeConverter.IsDbNull(boundValue))
+                size = size.Combine(_subtypeConverter.GetSize(context, boundValue, ref boundWriteState));
+            boundSize = size.Value - sizeof(int);
+            totalSize = totalSize.Combine(size);
+        }
     }
 
     public override void Write(PgWriter writer, NpgsqlRange<T> value)
