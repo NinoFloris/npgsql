@@ -92,11 +92,11 @@ sealed class RangeConverter<T> : PgStreamingConverter<NpgsqlRange<T>>
 
             if (!value.LowerBoundInfinite)
             {
-                var size = Size.Create(4); // Length
+                Size size = sizeof(int); // Length
 
                 if (!_subtypeConverter.IsDbNull(value.LowerBound))
                     size = size.Combine(_subtypeConverter.GetSize(context, value.LowerBound, ref rangeWriteState.LowerBoundWriteState));
-                rangeWriteState.LowerBoundSize = size.Value - 4;
+                rangeWriteState.LowerBoundSize = size.Value - sizeof(int);
                 totalSize = totalSize.Combine(size);
             }
 
@@ -106,7 +106,7 @@ sealed class RangeConverter<T> : PgStreamingConverter<NpgsqlRange<T>>
 
                 if (!_subtypeConverter.IsDbNull(value.UpperBound))
                     size = size.Combine(_subtypeConverter.GetSize(context, value.UpperBound, ref rangeWriteState.UpperBoundWriteState));
-                rangeWriteState.UpperBoundSize = size.Value - 4;
+                rangeWriteState.UpperBoundSize = size.Value - sizeof(int);
                 totalSize = totalSize.Combine(size);
             }
 
