@@ -389,27 +389,28 @@ public class NodaTimeTests : TestBase, IDisposable
     {
         await using var conn = await OpenConnectionAsync();
 
-        await AssertType<Array>(
-            new[]
-            {
-                new Interval(
-                    new LocalDateTime(1998, 4, 12, 13, 26, 38).InUtc().ToInstant(),
-                    new LocalDateTime(1998, 4, 12, 15, 26, 38).InUtc().ToInstant()),
-                new Interval(
-                    new LocalDateTime(1998, 4, 13, 13, 26, 38).InUtc().ToInstant(),
-                    new LocalDateTime(1998, 4, 13, 15, 26, 38).InUtc().ToInstant()),
-                new Interval(
-                    new LocalDateTime(1998, 4, 13, 13, 26, 38).InUtc().ToInstant(),
-                    null),
-                new Interval(
-                    null,
-                    new LocalDateTime(1998, 4, 13, 13, 26, 38).InUtc().ToInstant()),
-                new Interval(
-                    null,
-                    null)
-            },
-            """{"[\"1998-04-12 15:26:38+02\",\"1998-04-12 17:26:38+02\")","[\"1998-04-13 15:26:38+02\",\"1998-04-13 17:26:38+02\")","[\"1998-04-13 15:26:38+02\",)","(,\"1998-04-13 15:26:38+02\")","(,)"}""",
-            "tstzrange[]", dataTypeInference: DataTypeInference.Nothing);
+        var value = new[]
+        {
+            new Interval(
+                new LocalDateTime(1998, 4, 12, 13, 26, 38).InUtc().ToInstant(),
+                new LocalDateTime(1998, 4, 12, 15, 26, 38).InUtc().ToInstant()),
+            new Interval(
+                new LocalDateTime(1998, 4, 13, 13, 26, 38).InUtc().ToInstant(),
+                new LocalDateTime(1998, 4, 13, 15, 26, 38).InUtc().ToInstant()),
+            new Interval(
+                new LocalDateTime(1998, 4, 13, 13, 26, 38).InUtc().ToInstant(),
+                null),
+            new Interval(
+                null,
+                new LocalDateTime(1998, 4, 13, 13, 26, 38).InUtc().ToInstant()),
+            new Interval(
+                null,
+                null)
+        };
+        const string sqlLiteral = """{"[\"1998-04-12 15:26:38+02\",\"1998-04-12 17:26:38+02\")","[\"1998-04-13 15:26:38+02\",\"1998-04-13 17:26:38+02\")","[\"1998-04-13 15:26:38+02\",)","(,\"1998-04-13 15:26:38+02\")","(,)"}""";
+
+        await AssertTypeWrite(conn, value, sqlLiteral, "tstzrange[]", dataTypeInference: DataTypeInference.Nothing);
+        await AssertTypeRead<Array>(conn, sqlLiteral, "tstzrange[]", value);
     }
 
     [Test]
@@ -581,14 +582,15 @@ public class NodaTimeTests : TestBase, IDisposable
     {
         await using var conn = await OpenConnectionAsync();
 
-        await AssertType<Array>(
-            new[]
-            {
-                new DateInterval(new(2002, 3, 4), new(2002, 3, 5)),
-                new DateInterval(new(2002, 3, 8), new(2002, 3, 10))
-            },
-            """{"[2002-03-04,2002-03-06)","[2002-03-08,2002-03-11)"}""",
-            "daterange[]", dataTypeInference: DataTypeInference.Nothing);
+        var value = new[]
+        {
+            new DateInterval(new(2002, 3, 4), new(2002, 3, 5)),
+            new DateInterval(new(2002, 3, 8), new(2002, 3, 10))
+        };
+        const string sqlLiteral = """{"[2002-03-04,2002-03-06)","[2002-03-08,2002-03-11)"}""";
+
+        await AssertTypeWrite(conn, value, sqlLiteral, "daterange[]", dataTypeInference: DataTypeInference.Nothing);
+        await AssertTypeRead<Array>(conn, sqlLiteral, "daterange[]", value);
     }
 
     [Test]
